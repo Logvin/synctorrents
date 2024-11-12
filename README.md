@@ -1,6 +1,10 @@
 # synctorrents
 This is a bash script written to assist in moving content from one linux based machine to another. This solution utilizes the “Atomic Transfers” needed to ensure that destination utilities (Sonarr, Radarr, etc) do not move partially transferred files too early.
 
+# Sample Scenario
+I have a seedbox running in the cloud, and a Plex server running separately with Sonarr/Radarr/etc on it. When new files are downloaded, I want the script to strip out everything but the video file. If the file is in a RAR, extract it first. Once it has staged the files, it will use RSync to push them to my remote server where Sonarr/Radarr can grab and file away.
+
+
 ## Prerequisites
 1. Install Rsync Daemon on the destination server.
 	- Rsync Man Page: https://linux.die.net/man/1/rsync
