@@ -1,28 +1,31 @@
 #!/bin/bash
 
 #-----------------------------
-#Input Variables - Change these!
+# Import variables from synctorrents.conf file - Make sure you update it!
+source ./synctorrents.conf
 
 #----Vanity Variable Names-----
 #App Name - What you want to call this script
 appName="ExtractAndTransfer"
+#baseDir - The root folder where your script will live
+baseDir="/media/da16/rinkstain/private/scripts/ExtractAndTransfer"
 #----File Locations----
 #Lock File - A temporary file that prevents the script from running multiple times
-lockFileLocation="/your/location/$appName.lock"
+lockFileLocation="$baseDir/$appName.lock"
 #Location where your download client stores files after they are done downloading
-finishedDownloadPath="/your/location/deluge/completed"
+finishedDownloadPath="/media/da16/rinkstain/private/deluge/completed"
 #movedFileHistory is the running list of files that have been copied by this script, to prevent re-copying.
-movedFileHistory="/your/location/movedFileHistory.log"
+movedFileHistory="$baseDir/movedFileHistory.log"
 #stagedForTransfer is the directory that is staged and transfered from the seedbox at the end of the script.
-stagedForTransfer="/your/location/deluge/staging"
+stagedForTransfer="/media/da16/rinkstain/private/deluge/staging"
 #location of the rsync password file
-rsync_pass="/your/location/rsync_pass"
+rsync_pass="$baseDir/rsync_pass"
 #Location where the log file should be
-logFile="/your/location$appName.log"
+logFile="$baseDir/$appName.log"
 #Location for the rsync log file
-rsyncLogFile="/your/locationrsyncLog.log"
+rsyncLogFile="$baseDir/rsyncLog.log"
 #cron log file location
-cronLog="/your/locationcronLog.log"
+cronLog="$baseDir/cronlog.log"
 
 
 #----Other Variables----
@@ -35,9 +38,9 @@ logDays="15"
 #fileTypes is an array of the different file types you want to scan for. Case does not matter.
 fileTypes[0]="mkv" fileTypes[1]="avi" fileTypes[2]="mp4" fileTypes[3]="m4v" fileTypes[3]="rar"
 #Remote Host is the IP address or DNS name of your remote rsync server where you want to transfer completed downloads
-remote_host="123.123.123.123"
+remote_host="51.161.84.177"
 #Login that you created in your remote rsync server daemon
-remote_login=mylogin
+remote_login=plex
 
 
 #-----------------------------
@@ -134,10 +137,12 @@ moveFiles() {
 					local DIR="$(basename "$(dirname "$tmpFile")")"
 					myPrint "moveFiles" "Creating Directory: $stagedForTransfer/$DIR" "INFO"
 					if [ $dryRun = "FALSE" ] ; then
-						mkdir "$stagedForTransfer"/"$DIR"
+						#OLD mkdir "$stagedForTransfer"/"$DIR"
+						mkdir "$stagedForTransfer$myDIR"
 					fi
 					myPrint "moveFiles" "Extracting RAR Archive to destination directory: $tmpFile" "INFO"
 					local extractedDIR="$(dirname "$tmpFile")"
+                                        local myDIR="${extractedDIR:${#finishedDownloadPath}}"
 					#The extraction command
 					if [ $dryRun = "FALSE" ] ; then
 						7z e -o"$extractedDIR" "$tmpFile" -y
@@ -146,9 +151,10 @@ moveFiles() {
 					local fileName=$(7z l -slt "$tmpFile" | grep -e '^Path.*$' | grep -e '.*[^rar]$' | cut -c8-)
 					myPrint "moveFiles" "Extracted file name: $fileName" "INFO"
 					local fullExtractedPath="$extractedDIR/$fileName"
-					myPrint "moveFiles" "Moving $extractedDIR/$fileName file to $stagedForTransfer/$DIR/$fileName" "INFO"
+					myPrint "moveFiles" "Moving $extractedDIR/$fileName file to $stagedForTransfer$myDIR/$fileName" "INFO"
 					if [ $dryRun = "FALSE" ] ; then
-						cp --no-preserve=mode,ownership -f "$fullExtractedPath" "$stagedForTransfer"/"$DIR"/"$fileName" && rm "$fullExtractedPath"
+						#OLD cp --no-preserve=mode,ownership -f "$fullExtractedPath" "$stagedForTransfer"/"$DIR"/"$fileName" && rm "$fullExtractedPath"
+						cp --no-preserve=mode,ownership -f "$fullExtractedPath" "$stagedForTransfer$myDIR"/"$fileName" && rm "$fullExtractedPath"
 					fi
 					myPrint "moveFiles" "Copy Complete. Adding $tmpFile to $movedFileHistory" "INFO"
 					echo "$(date +%Y-%m-%d-%H:%M:%S) - $tmpFile" >> $movedFileHistory
@@ -178,13 +184,24 @@ moveFiles() {
 							cp --no-preserve=mode,ownership "$tmpFile" "$stagedForTransfer"/"$myBaseName"
 						fi
 					else
-						#its in a subfolder. mkdir and copy
-						myPrint "moveFiles" "In a subfolder, making a copy to $stagedForTransfer/$DIR/$myBaseName" "INFO"
-						if [ $dryRun = "FALSE" ] ; then
-							mkdir -p "$stagedForTransfer"/"$DIR"
-							cp --no-preserve=mode,ownership "$tmpFile" "$stagedForTransfer"/"$DIR"/"$myBaseName"
-						fi
+						#ALEX Testing full path
+						#myPrint "TESTING" "Testing full path creation"
+						local myFullDir="$(dirname "$tmpFile")"
+						local myDIR="${myFullDir:${#finishedDownloadPath}}"
+						#myPrint "TESTING" "stagedForTransfer =  $stagedForTransfer"
+						#myPrint "TESTING" "alexDIR = $alexDIR"
+						#myPrint "TESTING" "Action: mkdir $stagedForTransfer$alexDIR"
+						#END new Testing
 
+						#its in a subfolder. mkdir and copy
+						#OLD myPrint "moveFiles" "In a subfolder, making a copy to $stagedForTransfer/$DIR/$myBaseName"
+						myPrint "moveFiles" "In a subfolder, making a copy to $stagedForTransfer$myDIR/$myBaseName"
+						if [ $dryRun = "FALSE" ] ; then
+							#OLD mkdir -p "$stagedForTransfer"/"$DIR"
+							mkdir -p "$stagedForTransfer$myDIR"
+							#OLD cp --no-preserve=mode,ownership "$tmpFile" "$stagedForTransfer"/"$DIR"/"$myBaseName"
+							cp --no-preserve=mode,ownership "$tmpFile" "$stagedForTransfer$myDIR"/"$myBaseName"
+						fi
 					fi
 					myPrint "moveFiles" "Copy Complete. Adding to $movedFileHistory" "INFO"
 					echo "$(date +%Y-%m-%d-%H:%M:%S) - $tmpFile" >> $movedFileHistory
@@ -214,7 +231,9 @@ enableLogging() {
 		sed -i "/^$oldestLogDate/ d" "$logFile" 
 	else
 		#it does not exist, create it
+		echo "** touching $logFile now"
 		touch "$logFile"
+		echo "** touch done"
 		if test -f "$logFile"; then
 			echo "New log file created"
 		else
@@ -251,3 +270,4 @@ fi
 main
 exit 1
 #-----------------------------
+
