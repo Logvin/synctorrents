@@ -4,45 +4,6 @@
 # Import variables from synctorrents.conf file - Make sure you update it!
 source ./synctorrents.conf
 
-#----Vanity Variable Names-----
-#App Name - What you want to call this script
-appName="ExtractAndTransfer"
-#baseDir - The root folder where your script will live
-baseDir="/media/da16/rinkstain/private/scripts/ExtractAndTransfer"
-#----File Locations----
-#Lock File - A temporary file that prevents the script from running multiple times
-lockFileLocation="$baseDir/$appName.lock"
-#Location where your download client stores files after they are done downloading
-finishedDownloadPath="/media/da16/rinkstain/private/deluge/completed"
-#movedFileHistory is the running list of files that have been copied by this script, to prevent re-copying.
-movedFileHistory="$baseDir/movedFileHistory.log"
-#stagedForTransfer is the directory that is staged and transfered from the seedbox at the end of the script.
-stagedForTransfer="/media/da16/rinkstain/private/deluge/staging"
-#location of the rsync password file
-rsync_pass="$baseDir/rsync_pass"
-#Location where the log file should be
-logFile="$baseDir/$appName.log"
-#Location for the rsync log file
-rsyncLogFile="$baseDir/rsyncLog.log"
-#cron log file location
-cronLog="$baseDir/cronlog.log"
-
-
-#----Other Variables----
-#if dryRun is set to TRUE then the script will not make any copies/transfers. Log files only.
-dryRun="FALSE"
-#Log level - Set to "INFO" if you want it always to be verbose, otherwise use -v when you run to enable.
-logLevel="ERROR"
-#This script will roll off old log files. How long do you want to keep them? Default is 15 days.
-logDays="15"
-#fileTypes is an array of the different file types you want to scan for. Case does not matter.
-fileTypes[0]="mkv" fileTypes[1]="avi" fileTypes[2]="mp4" fileTypes[3]="m4v" fileTypes[3]="rar"
-#Remote Host is the IP address or DNS name of your remote rsync server where you want to transfer completed downloads
-remote_host="51.161.84.177"
-#Login that you created in your remote rsync server daemon
-remote_login=plex
-
-
 #-----------------------------
 #This is the main function. Everything else should be a subset of this.
 main() {
