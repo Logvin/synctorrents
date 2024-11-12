@@ -41,3 +41,18 @@ rsyncLogFile="$baseDir/logs/rsyncLog.log"
 
 #cron log file location
 cronLog="$baseDir/logs/cronlog.log"
+
+#This script will roll off old log files. How long do you want to keep them? Default is 15 days.
+logDays="15"
+
+#---------------------------------------------------------
+#Other Variables
+#---------------------------------------------------------
+#fileTypes is an array of the different file types you want to scan for. Case does not matter.
+fileTypes[0]="mkv" fileTypes[1]="avi" fileTypes[2]="mp4" fileTypes[3]="m4v" fileTypes[3]="rar"
+
+#Remote Host is the IP address or DNS name of your remote rsync server where you want to transfer completed downloads
+remote_host="123.123.123.123"
+
+#Login that you created in your remote rsync server daemon
+remote_login=rsync
