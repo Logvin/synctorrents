@@ -1,0 +1,43 @@
+#!/bin/bash
+#Configuration File for synctorrents.sh: https://github.com/Logvin/synctorrents/
+#---------------------------------------------------------
+#Variable Names
+#---------------------------------------------------------
+#appName - What you want to call this script
+appName="ExtractAndTransfer"
+ 
+#---------------------------------------------------------
+#Directory locations
+#---------------------------------------------------------
+#baseDir is the directory where the application is installed to.
+baseDir="/home/user/scripts/$appName/"
+  
+#Location where your download client stores files after they are done downloading
+finishedDownloadPath="/home/user/deluge/completed"
+  
+#stagedForTransfer is the directory that is staged and transfered from the seedbox at the end of the script.
+stagedForTransfer="/home/user/deluge/staging"
+  
+#---------------------------------------------------------
+#File locations
+#---------------------------------------------------------
+#Lock File - A temporary file that prevents the script from running multiple times
+lockFileLocation="$baseDir/$appName.lock"
+  
+#location of the rsync password file
+rsync_pass="$baseDir/rsync_pass"
+
+#---------------------------------------------------------
+#Log Files
+#---------------------------------------------------------
+#movedFileHistory is the running list of files that have been copied by this script, to prevent re-copying.
+movedFileHistory="$baseDir/logs/movedFileHistory.log"
+
+#Location where the log file should be
+logFile="$baseDir/logs/$appName.log"
+
+#Location for the rsync log file
+rsyncLogFile="$baseDir/logs/rsyncLog.log"
+
+#cron log file location
+cronLog="$baseDir/logs/cronlog.log"
